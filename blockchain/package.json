@@ -1,27 +1,22 @@
 {
   "name": "blockchain",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "jest",
-    "build": "tsc -b",
-    "start": "node dist/index.js",
-    "dev": "npm run build && npm run start"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "bs58": "^6.0.0",
-    "crypto": "^1.0.1",
-    "crypto-js": "^4.2.0",
-    "tweetnacl": "^1.0.3"
-  },
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
   "devDependencies": {
+    "@types/bun": "latest",
+    "@types/elliptic": "^6.4.18",
+    "elliptic": "^6.6.1"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@noble/hashes": "^2.0.1",
+    "@noble/secp256k1": "^3.0.0",
     "@types/crypto-js": "^4.2.2",
-    "@types/jest": "^30.0.0",
-    "jest": "^30.2.0"
+    "@types/ws": "^8.18.1",
+    "crypto-js": "^4.2.0",
+    "ws": "^8.18.3"
   }
 }

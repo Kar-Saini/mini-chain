@@ -7,19 +7,13 @@ export default class Block {
   public current_block_hash: string = "";
   public height: number;
   public nonce: number;
-  public transaction: Transaction;
-  public PREFIX: string = "000";
-  constructor(
-    prev_block_hash: string,
-    height: number,
-    transaction: Transaction
-  ) {
+  public transactions: Transaction[];
+  constructor(prev_block_hash: string, height: number) {
     this.prev_block_hash = prev_block_hash;
     this.timestamp = Date.now();
     this.nonce = 0;
     this.height = height;
-    this.transaction = transaction;
-    this.calculateHash();
+    this.transactions = [];
   }
 
   toString(): string {
@@ -29,29 +23,17 @@ export default class Block {
     Current Block Hash  : ${this.current_block_hash}, 
     Height              : ${this.height}, 
     Nonce               : ${this.nonce}, 
+    Transaction         : ${this.transactions.map((t) => JSON.stringify(t))}, 
     `;
-  }
-  calculateHash() {
-    let nonce = this.nonce;
-    while (1) {
-      let hash = SHA256(
-        this.prev_block_hash +
-          this.timestamp +
-          JSON.stringify(this.transaction) +
-          nonce +
-          this.height
-      ).toString();
-      if (hash.startsWith(this.PREFIX)) {
-        this.nonce = nonce;
-        this.current_block_hash = hash;
-        return;
-      }
-      nonce++;
-    }
   }
 
   static genesis() {
-    const genesisTx = new Transaction("GENESIS", "GENESIS", 0, "");
-    return new this("", 0, genesisTx);
+    const genesisBlock = new this("0", 0);
+    const genesisTx = new Transaction("GENESIS", "GENESIS", 0, "GENESIS_SIG");
+    genesisBlock.transactions.push(genesisTx);
+    genesisBlock.current_block_hash = SHA256(
+      JSON.stringify(genesisBlock)
+    ).toString();
+    return genesisBlock;
   }
 }

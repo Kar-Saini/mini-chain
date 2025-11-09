@@ -1,5 +1,3 @@
-import { verify } from "tweetnacl";
-
 export default class Transaction {
   public from: string;
   public to: string;
@@ -14,6 +12,4 @@ export default class Transaction {
     this.amount = amount;
     this.signature = signature;
   }
-
-  verify() {}
 }
