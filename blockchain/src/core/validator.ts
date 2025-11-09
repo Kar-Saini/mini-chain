@@ -3,16 +3,22 @@ import Block from "./block";
 import Blockchain from "./blockchain";
 import type Transaction from "./transaction";
 import { ec as EC } from "elliptic";
+import { EventEmitter } from "node:events";
 
 const ec = new EC("secp256k1");
 
-export class Validator {
-  mempool: Transaction[];
-  verifiedTransaction: Transaction[];
+export class Validator extends EventEmitter {
+  mempool: Transaction[] = [];
+  verifiedTransaction: Transaction[] = [];
+  private static instance: Validator;
 
-  constructor() {
-    this.mempool = [];
-    this.verifiedTransaction = [];
+  private constructor() {
+    super();
+  }
+
+  static getInstance() {
+    if (!Validator.instance) Validator.instance = new Validator();
+    return Validator.instance;
   }
   addTransactionToMemPool(trxn: Transaction) {
     this.mempool.push(trxn);
@@ -27,7 +33,6 @@ export class Validator {
     const isSignatureValid = pubKey.verify(msgHash, signature);
     if (isSignatureValid) {
       this.verifiedTransaction.push(trxn);
-      console.log("Pushed to verified");
     }
     this.mempool = this.mempool.filter((trxn) => trxn.signature !== signature);
     this.checkVerifiedTransactionLength();
@@ -43,11 +48,8 @@ export class Validator {
     const lastBlock =
       Blockchain.getInstance().chain[Blockchain.getInstance().chain.length - 1];
     if (!lastBlock) return;
-    const block = new Block(
-      lastBlock?.current_block_hash,
-      lastBlock?.height + 1
-    );
-    this.verifiedTransaction.map((t) => block.transactions.push(t));
+    const block = new Block(lastBlock.current_block_hash, lastBlock.height + 1);
+    block.transactions = [...this.verifiedTransaction];
     this.verifiedTransaction = [];
 
     let nonce = 0;
@@ -63,18 +65,25 @@ export class Validator {
 
       if (hash.startsWith(Blockchain.getInstance().PREFIX)) {
         console.log("Found - " + nonce);
-
         block.nonce = nonce;
         block.current_block_hash = hash;
         Blockchain.getInstance().chain.push(block);
+        console.log("✅ Block mined — emitting block-added");
+
+        console.log("Listener count:", this.listenerCount("block-added"));
+        this.emit("block-added", block);
         break;
       }
-      console.log(nonce);
       nonce++;
     }
-    Blockchain.getInstance().chain.push(block);
-    console.log("Block");
-    console.log(block);
+
+    console.log(
+      "*************************************************************"
+    );
+    console.log(Blockchain.getInstance().chain);
+    console.log(
+      "*************************************************************"
+    );
   }
 
   dumpBlocks() {}

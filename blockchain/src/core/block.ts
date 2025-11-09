@@ -1,4 +1,3 @@
-import { SHA256 } from "crypto-js";
 import Transaction from "./transaction";
 
 export default class Block {
@@ -8,6 +7,7 @@ export default class Block {
   public height: number;
   public nonce: number;
   public transactions: Transaction[];
+
   constructor(prev_block_hash: string, height: number) {
     this.prev_block_hash = prev_block_hash;
     this.timestamp = Date.now();
@@ -28,12 +28,10 @@ export default class Block {
   }
 
   static genesis() {
-    const genesisBlock = new this("0", 0);
+    const genesisBlock = new this("", 1);
     const genesisTx = new Transaction("GENESIS", "GENESIS", 0, "GENESIS_SIG");
     genesisBlock.transactions.push(genesisTx);
-    genesisBlock.current_block_hash = SHA256(
-      JSON.stringify(genesisBlock)
-    ).toString();
+    genesisBlock.current_block_hash = "GENESIS";
     return genesisBlock;
   }
 }

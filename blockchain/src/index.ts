@@ -1,18 +1,30 @@
 import { WebSocketServer } from "ws";
-import { Validator } from "./Validator";
-import type { INCOMING_MESSAGE } from "./types";
-import Blockchain from "./blockchain";
+import { Validator } from "./core/validator";
+import type { INCOMING_MESSAGE } from "./utils/types";
+import Blockchain from "./core/blockchain";
+import { createRandomTransaction } from "./utils/helper";
 
-const wss = new WebSocketServer(
+export const wss = new WebSocketServer(
   {
     port: 8080,
   },
   () => console.log("WSS started")
 );
 
+const validator = Validator.getInstance(); // ✅ singleton instance
 wss.on("connection", (ws: WebSocket) => {
   console.log("User connected");
-  const validator = new Validator();
+  console.log("Attaching listener...");
+  validator.on("block-added", (block) => {
+    console.log("Block added event received on ws server");
+    ws.send(JSON.stringify({ type: "block-added", payload: block }));
+  });
+  ws.send(
+    JSON.stringify({
+      type: "blockchain",
+      payload: Blockchain.getInstance().chain,
+    })
+  );
   ws.onmessage = (message) => {
     const { payload, type }: INCOMING_MESSAGE = JSON.parse(message.data);
     switch (type) {
@@ -22,5 +34,9 @@ wss.on("connection", (ws: WebSocket) => {
         break;
     }
   };
-  console.log(Blockchain.getInstance().chain);
 });
+
+setInterval(() => {
+  const tx = createRandomTransaction();
+  validator.addTransactionToMemPool(tx);
+}, 500);
